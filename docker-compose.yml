@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  # 1. ส่วน Web Server (Apache + PHP)
+  web:
+    build: .  # สร้าง Image จาก Dockerfile ที่เราเขียนตะกี้
+    ports:
+      - "80:80" # เข้าผ่าน http://localhost
+    volumes:
+      - ./src:/var/www/html # ผูกโฟลเดอร์ src ของเรา เข้าไปใน Server
+    depends_on:
+      - db
+
+  # 2. ส่วน Database (MySQL)
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword  # รหัสผ่าน Root
+      MYSQL_DATABASE: my_database        # ชื่อฐานข้อมูลเริ่มต้น
+      MYSQL_USER: user                   # ชื่อ User
+      MYSQL_PASSWORD: password           # รหัสผ่าน User
+    volumes:
+      - db_data:/var/lib/mysql           # เซฟข้อมูลถาวร (ปิด Docker ข้อมูลไม่หาย)
+
+  # 3. ส่วนจัดการ Database (phpMyAdmin) - *ของแถม ช่วยให้ชีวิตง่ายขึ้น*
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    ports:
+      - "8080:80" # เข้าผ่าน http://localhost:8080
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: rootpassword
+    depends_on:
+      - db
+
+volumes:
+  db_data:
